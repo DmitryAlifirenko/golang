@@ -9,6 +9,19 @@ import (
 	"unicode"
 )
 
+const (
+	ASCII_OF_a = 97
+	ASCII_OF_A = 65
+	ALPHABET_SIZE = 26
+)
+
+func checkCommandLineArgs() {
+	if len(os.Args) != 2 {
+		fmt.Printf("Usage caesar <key>\n")
+		os.Exit(0)
+	}
+}
+
 func getText() string {
 	fmt.Println("plaintext: ")
 
@@ -18,38 +31,44 @@ func getText() string {
 	return text.Text()
 }
 
-func encryptText(text string) {
-	firstLowercaseLetter := byte(97)
-	firstUppercaseLetter := byte(65)
-	alphabetLength := byte(26)
-	length := len(text)
-
+func getKey() rune {
 	key, err := strconv.Atoi(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
+	return rune(key)
+}
 
+func setText(input_text string) []rune {
+	text_length := len(input_text)
+	text:= make([]rune, text_length)
+	for i:=0; i<text_length; i++ {
+		text[i] = rune(input_text[i])
+	}
+	return text
+}
+
+func printEncryptedText(text []rune, key rune)  {
+	length := len(text)
 	fmt.Println("ciphertext: ")
-
 	for i := 0; i < length; i++ {
-		if unicode.IsLetter(rune(text[i])) {
-			if unicode.IsLower(rune(text[i])) {
-				fmt.Printf("%c", ((((text[i] - firstLowercaseLetter) + byte(key)) % alphabetLength) + firstLowercaseLetter))
-			} else {
-				fmt.Printf("%c", ((((text[i] - firstUppercaseLetter) + byte(key)) % alphabetLength) + firstUppercaseLetter))
-			}
+		fmt.Printf("%c", caesarEncryption(text[i], key))
+	}
+}
+
+func caesarEncryption(char rune, key rune) rune {
+	if unicode.IsLetter(char) {
+		if unicode.IsLower(char) {
+			return ((((char - ASCII_OF_a) + key) % ALPHABET_SIZE) + ASCII_OF_a)
 		} else {
-			fmt.Printf("%c", text[i])
+			return ((((char - ASCII_OF_A) + key) % ALPHABET_SIZE) + ASCII_OF_A)
 		}
+	} else {
+		return char
 	}
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Printf("Usage caesar <key>\n")
-		os.Exit(0)
-	}
-
-	encryptText(getText())
+	checkCommandLineArgs()
+	printEncryptedText(setText(getText()), getKey())
 }
