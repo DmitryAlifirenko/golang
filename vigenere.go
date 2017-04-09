@@ -8,7 +8,20 @@ import (
 	"unicode"
 )
 
+const (
+	ASCII_OF_a = 97
+	ASCII_OF_A = 65
+	ALPHABET_SIZE = 26
+)
+
 var keycode_length int
+
+func checkCommandLineArgs() {
+	if len(os.Args) != 2 {
+		fmt.Printf("Usage caesar <key>\n")
+		os.Exit(0)
+	}
+}
 
 func getText() string {
 	fmt.Println("plaintext: ")
@@ -24,53 +37,53 @@ func getKey() string {
 	return key
 }
 
+func setText(input_text string) []rune {
+	text_length := len(input_text)
+	text:= make([]rune, text_length)
+	for i:=0; i<text_length; i++ {
+		text[i] = rune(input_text[i])
+	}
+	return text
+}
+
 func setKeycode(key string) []rune {
 	keycode_length = len(key)
 	p := make([]rune, keycode_length)
 	for i := 0; i < keycode_length; i++ {
-		p[i] = unicode.ToUpper(rune(key[i])) - 65
+		p[i] = unicode.ToUpper(rune(key[i])) - ASCII_OF_A
 	}
 	return p
 }
 
-func encryptText(keycode []rune, text string) {
+func printEncryptedText(keycode []rune, text []rune) {
 	key_count := 0
-
 	length := len(text)
-
-	fmt.Printf("ciphertext: ")
+	fmt.Println("ciphertext: ")
 
 	for i := 0; i < length; i++ {
-		if !unicode.IsLetter(rune(text[i])) {
-			fmt.Printf("%c", text[i])
+		fmt.Printf("%c", caesarEncryption(text[i], keycode[key_count]))
+		if key_count < keycode_length-1 {
+			key_count++
 		} else {
-			fmt.Printf("%c", caesar(rune(text[i]), keycode[key_count]))
-			if key_count < keycode_length-1 {
-				key_count++
-			} else {
-				key_count = 0
-			}
+			key_count = 0
 		}
 	}
 }
 
-func caesar(text1 rune, key1 rune) rune {
-	firstLowercaseLetter := rune(97)
-	firstUppercaseLetter := rune(65)
-	alphabetLength := rune(26)
-
-	if unicode.IsLower(text1) {
-		return ((((text1 - firstLowercaseLetter) + key1) % alphabetLength) + firstLowercaseLetter)
+func caesarEncryption(char rune, key rune) rune {
+	if unicode.IsLetter(char) {
+		if unicode.IsLower(char) {
+			return ((((char - ASCII_OF_a) + key) % ALPHABET_SIZE) + ASCII_OF_a)
+		} else {
+			return ((((char - ASCII_OF_A) + key) % ALPHABET_SIZE) + ASCII_OF_A)
+		}
 	} else {
-		return ((((text1 - firstUppercaseLetter) + key1) % alphabetLength) + firstUppercaseLetter)
+		return char
 	}
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Printf("Usage vigenere <key>\n")
-		os.Exit(0)
-	}
+	checkCommandLineArgs()
 
-	encryptText(setKeycode(getKey()), getText())
+	printEncryptedText(setKeycode(getKey()), setText(getText()))
 }
